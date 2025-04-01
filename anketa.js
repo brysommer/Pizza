@@ -52,12 +52,12 @@ export const anketaListiner = async () => {
                     await createNewUserByChatId(chatId);  
 
                     logger.info(`USER_ID: ${chatId} join BOT`);
-
+                    /*
                     await bot.sendMessage(
                         chatId, 
                         phrases.botInformation
                     );
-    
+                    */
                     await delay(2000);
     
                     await bot.sendMessage(
