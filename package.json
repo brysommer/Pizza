@@ -1,0 +1,28 @@
+{
+  "name": "taxi_oleg",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "taxi telegram bot",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon ./app.js"
+  },
+  "keywords": [
+    "taxi"
+  ],
+  "author": "itGin",
+  "license": "ISC",
+  "dependencies": {
+    "crypto": "^1.0.1",
+    "express": "^4.21.0",
+    "jspdf": "^2.5.2",
+    "luxon": "^3.5.0",
+    "node-cron": "^3.0.3",
+    "node-telegram-bot-api": "^0.66.0",
+    "overshom-wayforpay": "^1.1.0",
+    "pg": "^8.12.0",
+    "qrcode": "^1.5.4",
+    "sequelize": "^6.37.3"
+  }
+}
