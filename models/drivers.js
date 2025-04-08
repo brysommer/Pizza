@@ -50,8 +50,15 @@ const findDriverByChatId = async (chat_id) => {
     return res;
 };
 
+const findDriversChatId = async () => {
+    const res = await Driver.findAll({ where: {  } });
+    if (res.length > 0) return res.map(el => el.dataValues.chat_id);
+    return;
+};
+
 export {
     Driver,
     createNewDriverByChatId,
-    findDriverByChatId
+    findDriverByChatId,
+    findDriversChatId
 };   

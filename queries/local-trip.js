@@ -1,5 +1,6 @@
-import { bot } from '../app.js';
+import { bot, driversBot } from '../app.js';
 import { keyboards, phrases } from '../language_ua.js';
+import { Driver, findDriversChatId } from '../models/drivers.js';
 import { createNewLocalOrder, findLocalOrderById, updateCommentLocalOrderById, updateDirectionLocalOrderById, updatePhoneLocalOrderById } from '../models/localOrders.js';
 import { findAllCities, findCityById } from '../models/taxi-cities.js';
 import { findUserByChatId, updateDiaulogueStatus, updateUserByChatId } from '../models/user.js';
@@ -274,10 +275,15 @@ const localTrip = async () => {
                 const localOrder = await findLocalOrderById(status_info);
 
                 const orderPhone = await updatePhoneLocalOrderById(status_info, text);
+
+                const drivers = await findDriversChatId();
+                console.log(drivers);
+
+                
+                
                 //const getTag = localOrder?.pickup_location ? localOrder?.pickup_location.split(" ") : null;
                 //const putTag = localOrder?.direction_location ? localOrder?.direction_location.split(" ") : null;
 
-                await bot.sendMessage(dataBot.driversChannel, 'Адреса: ' + localOrder.pickup_location + ' Оплата: '+localOrder.direction_location);
                 /*
                 if (getTag.length === 2) {
                     await bot.sendLocation(dataBot.driversChannel, getTag[0], getTag[1]);
@@ -303,6 +309,33 @@ const localTrip = async () => {
                     { parse_mode: "Markdown" }  
                 );
                 
+                for (const driverId of drivers) {
+                    try {
+                        await driversBot.sendMessage(
+                            driverId,
+                            `📦 *Замовлення №: ${localOrder.id}*\n` +
+                            `${city.emoji} ${city.city}\n` +
+                            `📍 *Адреса:* ${localOrder.pickup_location}\n` +
+                            `💳 *Оплата:* ${localOrder.direction_location} грн ✅`,
+                            {
+                                parse_mode: "Markdown",
+                                reply_markup: {
+                                    inline_keyboard: [
+                                        [
+                                            {
+                                                text: "🚗 Взяти замовлення",
+                                                callback_data: `get@${localOrder.id}`
+                                            }
+                                        ]
+                                    ]
+                                }
+                            }
+                        );
+                    } catch (error) {
+                        console.warn(`❌ Не вдалося надіслати повідомлення водієві з chatId ${driverId}:`, error?.message || error);
+                        // Можеш ще додати логіку, щоб відмічати неактивних водіїв у базі
+                    }
+                }
                 
 
                 await bot.sendMessage(chatId, 

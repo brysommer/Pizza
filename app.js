@@ -12,8 +12,9 @@ import support from './queries/support.js';
 import getRideByDate from './queries/getRideByDate.js';
 
 const bot = new TelegramBot(dataBot.telegramBotToken, { polling: true });
+const driversBot = new TelegramBot(dataBot.courierBotToken, { polling: true });
 
-export { bot };
+export { bot, driversBot };
 
 const main = async () => {
     const models = {
