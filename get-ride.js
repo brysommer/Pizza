@@ -39,7 +39,8 @@ const getRide = async () => {
             await driversBot.sendMessage(
                 chatId,
                 `*Ви успішно забрали замовлення ${textCommand[1]}*\n` +
-                `📍 *Адреса:* ${localOrder.pickup_location}\n` +
+                `📍 *Адреса куди:* ${localOrder.pickup_location}\n` +  
+                `📍 *Адреса звідки:* ${localOrder.price}\n` +
                 `💳 *Оплата:* ${localOrder?.direction_location} грн ✅\n` +
                 `📞 ${localOrder?.phone}`,
                 { parse_mode: "Markdown" }

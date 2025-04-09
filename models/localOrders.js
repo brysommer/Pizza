@@ -32,6 +32,10 @@ LocalOrders.init({
     phone: {
         type: DataTypes.STRING,
         allowNull: true
+    },
+    price: {
+        type: DataTypes.STRING,
+        allowNull: true
     }
 
 }, {
@@ -76,6 +80,11 @@ const updateDirectionLocalOrderById = async (id, direction) => {
     return res[0] ? id : undefined;
 };
 
+const updatePickUpLocalOrderById = async (id, price) => {
+    const res = await LocalOrders.update({ price }, { where: { id } });
+    return res[0] ? id : undefined;
+};
+
 const updatePhoneLocalOrderById = async (id, phone) => {
     const res = await LocalOrders.update({ phone }, { where: { id } });
     return res[0] ? id : undefined;
@@ -88,5 +97,6 @@ export {
     updateDriverLocalOrderById,
     updateCommentLocalOrderById,
     updateDirectionLocalOrderById,
-    updatePhoneLocalOrderById
+    updatePhoneLocalOrderById,
+    updatePickUpLocalOrderById
 };

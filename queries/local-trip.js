@@ -1,7 +1,7 @@
 import { bot, driversBot } from '../app.js';
 import { keyboards, phrases } from '../language_ua.js';
-import { Driver, findDriversChatId } from '../models/drivers.js';
-import { createNewLocalOrder, findLocalOrderById, updateCommentLocalOrderById, updateDirectionLocalOrderById, updatePhoneLocalOrderById } from '../models/localOrders.js';
+import { findDriversChatId } from '../models/drivers.js';
+import { createNewLocalOrder, findLocalOrderById, updateCommentLocalOrderById, updateDirectionLocalOrderById, updatePhoneLocalOrderById, updatePickUpLocalOrderById } from '../models/localOrders.js';
 import { findAllCities, findCityById } from '../models/taxi-cities.js';
 import { findUserByChatId, updateDiaulogueStatus, updateUserByChatId } from '../models/user.js';
 import { generateLocaLLocationsMenu } from '../plugins/generate-menu.js';
@@ -236,10 +236,10 @@ const localTrip = async () => {
             console.log(chatId, text, user.favorite_city)
             const order = await createNewLocalOrder(chatId, text, user.favorite_city);
             console.log(order)
-            await updateDiaulogueStatus(chatId, 'direction+' + order.id);
+            await updateDiaulogueStatus(chatId, 'pickup+' + order.id);
 
             await bot.sendMessage(chatId, 
-                phrases.taxiOnTheWay,
+                phrases.pickup,
               /*  { reply_markup: { inline_keyboard: [
                     [{ text: 'Вказати напрямок руху', callback_data: `direction+${order.id}` }],
                     [{ text: 'Залишити напрямок руху довільним', callback_data: `anydirection+${order.id}` }],
@@ -270,7 +270,27 @@ const localTrip = async () => {
             );
         };
 
-        if(status_hook === 'customerPhone') {
+        if (user && status_hook === 'pickup' && !location) {
+
+            
+
+            const direction = await updatePickUpLocalOrderById(status_info, text);
+            
+       //     const paymentLink = await sessionCreate(1, 'local', status_info, chatId);
+            await updateDiaulogueStatus(chatId, 'direction+' + status_info);
+
+            await bot.sendMessage(
+                chatId,
+                phrases.taxiOnTheWay,
+              /*      { reply_markup: { inline_keyboard: [
+                        [{ text: 'Замовити', url: paymentLink }],
+                        [{ text: 'Вихід 🚪', callback_data: 'exit' }]] } }   
+                         */ 
+            );
+        };
+
+        if (status_hook === 'customerPhone') {
+
             try {
                 const localOrder = await findLocalOrderById(status_info);
 
@@ -304,7 +324,8 @@ const localTrip = async () => {
                 await bot.sendMessage(  
                     dataBot.driversChannel,  
                     `📦 *Замовлення №: ${localOrder.id} \n${city.emoji} ${city.city}*\n` +  
-                    `📍 *Адреса:* ${localOrder.pickup_location}\n` +  
+                    `📍 *Адреса куди:* ${localOrder.pickup_location}\n` +  
+                    `📍 *Адреса звідки:* ${localOrder.price}\n` +
                     `💳 *Оплата:* ${localOrder.direction_location} грн ✅`,  
                     { parse_mode: "Markdown" }  
                 );
@@ -315,7 +336,8 @@ const localTrip = async () => {
                             driverId,
                             `📦 *Замовлення №: ${localOrder.id}*\n` +
                             `${city.emoji} ${city.city}\n` +
-                            `📍 *Адреса:* ${localOrder.pickup_location}\n` +
+                            `📍 *Адреса куди:* ${localOrder.pickup_location}\n` +  
+                            `📍 *Адреса звідки:* ${localOrder.price}\n` +
                             `💳 *Оплата:* ${localOrder.direction_location} грн ✅`,
                             {
                                 parse_mode: "Markdown",
