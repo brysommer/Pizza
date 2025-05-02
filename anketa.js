@@ -9,7 +9,6 @@ const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 export const anketaListiner = async () => {
     bot.setMyCommands([
-     //   {command: '/pay', description: 'Зробити оплату (з вибором суми)'},
         {command: '/start', description: 'Повернутися до головного меню'},
       ]);
 
@@ -23,13 +22,6 @@ export const anketaListiner = async () => {
 
         try {
             if (text === '/start') {  
-                /*
-                await bot.sendMessage(
-                    chatId, 
-                    phrases.mainMenu,
-                    { reply_markup: keyboards.selectArea }
-                ); 
-                */
                 
 
                 const user = await findUserByChatId(chatId);
@@ -37,27 +29,18 @@ export const anketaListiner = async () => {
                 await updateDiaulogueStatus(chatId, '');
 
                 if (user) {
-                    /*
-                    await bot.sendMessage(
-                        chatId, 
-                        phrases.botInformation
-                    );
-                    */
+
                     await bot.sendMessage(
                         chatId, 
                         phrases.mainMenu,
                         { reply_markup: keyboards.selectArea }
                     ); 
+
                 } else {
                     await createNewUserByChatId(chatId);  
 
                     logger.info(`USER_ID: ${chatId} join BOT`);
-                    /*
-                    await bot.sendMessage(
-                        chatId, 
-                        phrases.botInformation
-                    );
-                    */
+
                     await delay(2000);
     
                     await bot.sendMessage(
@@ -70,14 +53,27 @@ export const anketaListiner = async () => {
                                   
             } 
             
-            if (text === '/pay') {
-                await updateDiaulogueStatus(chatId, 'pay');
+            if (status === 'defaultPickup') {
+                await updateDiaulogueStatus(chatId, '');
+
+                await updateUserByChatId(chatId, { defaultPickupLocation : text });
 
                 await bot.sendMessage(
                     chatId, 
-                    phrases.paymantAmount
+                    phrases.successSaved,
+                    { reply_markup: keyboards.selectArea }
                 );
 
+            }
+
+            if (status === 'nameRequest') {
+                await updateDiaulogueStatus(chatId, 'defaultPickup');
+                await updateUserByChatId(chatId, { businessName : text });
+
+                await bot.sendMessage(
+                    chatId, 
+                    phrases.defaultAddress,
+                );
             }
             if (user && status === 'pay') {
                 if (!isNaN(text)) {
@@ -118,14 +114,19 @@ export const anketaListiner = async () => {
         try {
             const user = await findUserByChatId(chatId);
 
-            user && await updateUserByChatId(chatId, { phone });
+            user && await updateUserByChatId(chatId, { phone, dialogue_status: 'nameRequest' });
 
+            await bot.sendMessage(
+                chatId, 
+                phrases.requestedName,
+            );
+/*
             await bot.sendMessage(
                 chatId, 
                 phrases.mainMenu,
                 { reply_markup: keyboards.selectArea }
             );
-
+*/
         } catch (error) {
 
             logger.warn(`Cann't update phone number`);

@@ -17,6 +17,7 @@ const localTrip = async () => {
 
         try {
             switch (action) {
+                
                 case 'exit':
                     await updateDiaulogueStatus(chatId, '');
 

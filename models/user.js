@@ -22,13 +22,21 @@ User.init({
         type: DataTypes.STRING,
         allowNull: true
     },
-
+    defaultPickupLocation: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+    businessName: {
+        type: DataTypes.STRING,
+        allowNull: true
+    }
 }, {
     freezeTableName: false,
     timestamps: true,
     modelName: 'users',
     sequelize
 });
+
 
 const createNewUser = async (userData) => {
     let res;
