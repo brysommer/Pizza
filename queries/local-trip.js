@@ -57,38 +57,10 @@ const localTrip = async () => {
                         case 'city':
                             const city = await updateUserByChatId(chatId, { favorite_city: callback_info });
 
-                           /* await bot.sendPhoto(
-                                chatId,
-                                'AgACAgIAAxkBAAMsZu1lYLwq8Sgxg0lbkpK847-vaQYAAkrmMRtbL2hL4YcfYGuNAAExAQADAgADeQADNgQ',
-                                { caption: phrases.geolocation }    
-                            );
-*/
-                         //   await delay (2000);
                             await bot.sendMessage(
                                 chatId,
                                 phrases.sendAddress                                 
                             );
-                            /*
-                            await delay (2000);
-
-                            await bot.sendMessage(
-                                chatId,
-                                phrases.sendGeo,
-                                { reply_markup: { keyboard:
-                                    [
-                                        [{
-                                          text: 'Надіслати геопозицію',
-                                          request_location: true
-                                        }]
-                                      ],
-                                      resize_keyboard: true,
-                                      one_time_keyboard: true
-                                }   }    
-                            );
-
-                            */
-
-                            
 
                             await updateDiaulogueStatus(chatId, 'address');
 
@@ -237,26 +209,34 @@ const localTrip = async () => {
             console.log(chatId, text, user.favorite_city)
             const order = await createNewLocalOrder(chatId, text, user.favorite_city);
             console.log(order)
-            await updateDiaulogueStatus(chatId, 'pickup+' + order.id);
+          //  await updateDiaulogueStatus(chatId, 'pickup+' + order.id);
+
+            const direction = await updateDirectionLocalOrderById(order.id, user?.defaultPickupLocation);
+
 
             await bot.sendMessage(chatId, 
-                phrases.pickup,
-              /*  { reply_markup: { inline_keyboard: [
-                    [{ text: 'Вказати напрямок руху', callback_data: `direction+${order.id}` }],
-                    [{ text: 'Залишити напрямок руху довільним', callback_data: `anydirection+${order.id}` }],
-                    [{ text: 'Вихід 🚪', callback_data: 'exit' }],
-                    [{ text: 'Залишити коментар 💬', callback_data: `localComment+${order.id}` }],
-                    
-                ]} }
-                    */
+                'Ваша адреса для забору відправлення ' + user?.defaultPickupLocation,                    
             )
+
+            await delay(500);
+
+            await updateDiaulogueStatus(chatId, 'direction+' + order.id);
+
+            await bot.sendMessage(
+                chatId,
+                phrases.taxiOnTheWay,
+              /*      { reply_markup: { inline_keyboard: [
+                        [{ text: 'Замовити', url: paymentLink }],
+                        [{ text: 'Вихід 🚪', callback_data: 'exit' }]] } }   
+                         */ 
+            );
         }
 
         if (user && status_hook === 'direction' && !location) {
 
             
 
-            const direction = await updateDirectionLocalOrderById(status_info, text);
+            const direction = await updateDirectionLocalOrderById(status_info, user?.defaultPickupLocation);
             
        //     const paymentLink = await sessionCreate(1, 'local', status_info, chatId);
             await updateDiaulogueStatus(chatId, 'customerPhone+' + status_info);
