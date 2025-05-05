@@ -236,7 +236,7 @@ const localTrip = async () => {
 
             
 
-            const direction = await updateDirectionLocalOrderById(status_info, status_hook);
+            const direction = await updateDirectionLocalOrderById(status_info, text);
             
        //     const paymentLink = await sessionCreate(1, 'local', status_info, chatId);
             await updateDiaulogueStatus(chatId, 'customerPhone+' + status_info);
@@ -270,7 +270,7 @@ const localTrip = async () => {
             );
         };
 
-        if (status_hook === 'AWD') {
+        if (status_hook === 'customerPhone') {
 
             try {
                 const localOrder = await findLocalOrderById(status_info);
