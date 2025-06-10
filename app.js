@@ -10,9 +10,12 @@ import autoRides from './plugins/auto-rides.js';
 import cron from 'node-cron';
 import support from './queries/support.js';
 import getRideByDate from './queries/getRideByDate.js';
+import { referalProgram } from './queries/referal-program.js';
 
 const bot = new TelegramBot(dataBot.telegramBotToken, { polling: true });
 const driversBot = new TelegramBot(dataBot.courierBotToken, { polling: true });
+
+
 
 export { bot, driversBot };
 
@@ -41,7 +44,7 @@ main();
 
 anketaListiner();
 localTrip();
-//buyTicket();
+referalProgram();
 //server();
 getRide();
 //support();

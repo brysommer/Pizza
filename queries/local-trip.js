@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { bot, driversBot } from '../app.js';
 import { keyboards, phrases } from '../language_ua.js';
 import { findDriversChatId } from '../models/drivers.js';
@@ -301,12 +302,44 @@ const localTrip = async () => {
                 const city = await findCityById(localOrder?.city);
 
                 const user = await findUserByChatId(chatId);
+
+                const distanceResponse = await axios.get('https://maps.googleapis.com/maps/api/directions/json?',
+                    { 
+                        params: 
+                        {
+                            origin: localOrder.price + ', Рівне',
+                            destination: localOrder.pickup_location + ', Рівне',
+                            key: dataBot.gapiKey,
+                            mode: 'driving'
+                        }
+                    }
+                );
+
+                
+                const data = distanceResponse.data;
+
+                let direction;
+
+                if (data.status === 'OK' && data.routes && data.routes.length > 0) {
+
+                    const route = data.routes[0];
+                    const leg = route.legs[0];
+
+                    const distanceText = leg.distance.text; // Відстань у текстовому форматі (наприклад, "6 км")
+                    const distanceValue = leg.distance.value; // Відстань у метрах (наприклад, 6000)
+
+                    direction = distanceText;
+
+                } else {
+                    console.error("Error or no routes found:", data.status);
+                }
                 
                 await bot.sendMessage(  
                     dataBot.driversChannel,  
                     `📦 *Замовлення №: ${localOrder.id} \n${city.emoji} ${city.city}*\n` +  
                     `📍 *Адреса куди:* ${localOrder.pickup_location}\n` +  
                     `📍 *Адреса звідки:* ${localOrder.price}\n` +
+                    `🛣️ *Відстань:* ${direction}\n` +
                     `💳 *Оплата:* ${localOrder.direction_location} грн ✅`,  
                     { parse_mode: "Markdown" }  
                 );
@@ -319,6 +352,7 @@ const localTrip = async () => {
                             `${city.emoji} ${city.city}\n` +
                             `📍 *Адреса куди:* ${localOrder.pickup_location}\n` +  
                             `📍 *Адреса звідки:* ${localOrder.price}\n` +
+                            `🛣️ *Відстань:* ${direction}\n` +
                             `💳 *Оплата:* ${localOrder.direction_location} грн ✅`,
                             {
                                 parse_mode: "Markdown",

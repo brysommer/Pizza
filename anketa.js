@@ -12,6 +12,45 @@ export const anketaListiner = async () => {
         {command: '/start', description: 'Повернутися до головного меню'},
       ]);
 
+      bot.onText(/\/start(?:\s(.*))?/, async (msg, match) => {
+        const chatId = msg.chat.id;
+        const referralCode = match[1]; // тут буде "ref123", якщо передано
+
+        const user = await findUserByChatId(chatId);
+
+        await updateDiaulogueStatus(chatId, '');
+
+        if (user) {
+
+            await bot.sendMessage(
+                chatId, 
+                phrases.mainMenu,
+                { reply_markup: keyboards.selectArea }
+            ); 
+
+        } else {
+            await createNewUserByChatId(chatId);  
+
+            logger.info(`USER_ID: ${chatId} join BOT`);
+
+            await delay(2000);
+
+            if (referralCode) {
+                bot.sendMessage(chatId, `Вас запросив користувач з кодом: ${referralCode}`);
+            }
+
+            await delay(2000);
+    
+            await bot.sendMessage(
+                chatId, 
+                phrases.askNumber,
+                { reply_markup: keyboards.shareNumber }
+            );
+    
+        }  
+      
+      });
+
     bot.on('message', async (message) => {
         const chatId = message.chat.id;
         const text = message.text;
@@ -24,32 +63,7 @@ export const anketaListiner = async () => {
             if (text === '/start') {  
                 
 
-                const user = await findUserByChatId(chatId);
-
-                await updateDiaulogueStatus(chatId, '');
-
-                if (user) {
-
-                    await bot.sendMessage(
-                        chatId, 
-                        phrases.mainMenu,
-                        { reply_markup: keyboards.selectArea }
-                    ); 
-
-                } else {
-                    await createNewUserByChatId(chatId);  
-
-                    logger.info(`USER_ID: ${chatId} join BOT`);
-
-                    await delay(2000);
-    
-                    await bot.sendMessage(
-                        chatId, 
-                        phrases.askNumber,
-                        { reply_markup: keyboards.shareNumber }
-                    );
-    
-                }  
+                
                                   
             } 
             
