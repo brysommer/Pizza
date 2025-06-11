@@ -3,6 +3,7 @@ import { keyboards, phrases } from './language_ua.js';
 import { createNewUserByChatId, findUserByChatId, updateDiaulogueStatus, updateUserByChatId } from './models/user.js';
 import { logger } from "./logger/index.js";
 import { sessionCreate } from "./wfpinit.js";
+import { findDriverByChatId } from "./models/drivers.js";
 
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -13,8 +14,10 @@ export const anketaListiner = async () => {
       ]);
 
       bot.onText(/\/start(?:\s(.*))?/, async (msg, match) => {
+
         const chatId = msg.chat.id;
-        const referralCode = match[1]; // тут буде "ref123", якщо передано
+
+        const referralCode = match[1];
 
         const user = await findUserByChatId(chatId);
 
@@ -29,7 +32,7 @@ export const anketaListiner = async () => {
             ); 
 
         } else {
-            await createNewUserByChatId(chatId);  
+            const newUser = await createNewUserByChatId(chatId);  
 
             logger.info(`USER_ID: ${chatId} join BOT`);
 
@@ -37,18 +40,25 @@ export const anketaListiner = async () => {
 
             if (referralCode) {
                 bot.sendMessage(chatId, `Вас запросив користувач з кодом: ${referralCode}`);
-            }
 
-            await delay(2000);
-    
-            await bot.sendMessage(
-                chatId, 
-                phrases.askNumber,
-                { reply_markup: keyboards.shareNumber }
-            );
-    
-        }  
-      
+                const inviter = await findDriverByChatId(referralCode);
+                if (!inviter) {
+                    return bot.sendMessage(chatId, 'Посилання недійсне: користувач не знайдений');
+                }
+
+                await addReferral(inviter.id, newUser.id);
+                bot.sendMessage(chatId, `Вітаємо! Вас запросив ${inviter.name || 'користувач'}`);
+
+                await delay(2000);
+        
+                await bot.sendMessage(
+                    chatId, 
+                    phrases.askNumber,
+                    { reply_markup: keyboards.shareNumber }
+                );
+            }
+        }
+
       });
 
     bot.on('message', async (message) => {
@@ -60,13 +70,7 @@ export const anketaListiner = async () => {
         const status = user?.dialogue_status;
 
         try {
-            if (text === '/start') {  
-                
-
-                
-                                  
-            } 
-            
+                       
             if (status === 'defaultPickup') {
                 await updateDiaulogueStatus(chatId, '');
 
@@ -91,10 +95,8 @@ export const anketaListiner = async () => {
             }
             if (user && status === 'pay') {
                 if (!isNaN(text)) {
-                    await updateDiaulogueStatus(chatId, '');
-    
+                    await updateDiaulogueStatus(chatId, ''); 
    
-    
                     const paymentLink = await sessionCreate(text, 'pay', 'pay', chatId);
         
                     await bot.sendMessage(
@@ -121,9 +123,7 @@ export const anketaListiner = async () => {
     bot.on("contact", async (msg) => {
 
         const phone = msg.contact.phone_number;
-        const chatId = msg.chat.id;
-
-        
+        const chatId = msg.chat.id;        
 
         try {
             const user = await findUserByChatId(chatId);
@@ -134,13 +134,7 @@ export const anketaListiner = async () => {
                 chatId, 
                 phrases.requestedName,
             );
-/*
-            await bot.sendMessage(
-                chatId, 
-                phrases.mainMenu,
-                { reply_markup: keyboards.selectArea }
-            );
-*/
+
         } catch (error) {
 
             logger.warn(`Cann't update phone number`);

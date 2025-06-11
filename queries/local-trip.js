@@ -22,11 +22,6 @@ const localTrip = async () => {
                 case 'exit':
                     await updateDiaulogueStatus(chatId, '');
 
-                   /* await bot.sendMessage(
-                        chatId, 
-                        phrases.botInformation
-                    );
-                    */
                     await bot.sendMessage(
                     chatId, 
                     phrases.mainMenu,
@@ -92,17 +87,6 @@ const localTrip = async () => {
                             await bot.sendMessage(
                                 chatId,
                                 phrases.sendGeo,
-                              /*  { reply_markup: { keyboard:
-                                    [
-                                        [{
-                                          text: 'Надіслати геопозицію',
-                                          request_location: true
-                                        }]
-                                      ],
-                                      resize_keyboard: true,
-                                      one_time_keyboard: true
-                                }   }   
-                                      */ 
                             );
 
                             await delay (2000);
@@ -226,49 +210,33 @@ const localTrip = async () => {
             await bot.sendMessage(
                 chatId,
                 phrases.taxiOnTheWay,
-              /*      { reply_markup: { inline_keyboard: [
-                        [{ text: 'Замовити', url: paymentLink }],
-                        [{ text: 'Вихід 🚪', callback_data: 'exit' }]] } }   
-                         */ 
             );
         }
 
         if (user && status_hook === 'direction' && !location) {
 
-            
-
             const direction = await updateDirectionLocalOrderById(status_info, text);
             
-       //     const paymentLink = await sessionCreate(1, 'local', status_info, chatId);
             await updateDiaulogueStatus(chatId, 'customerPhone+' + status_info);
 
             await bot.sendMessage(
                 chatId,
                 phrases.rules,
-              /*      { reply_markup: { inline_keyboard: [
-                        [{ text: 'Замовити', url: paymentLink }],
-                        [{ text: 'Вихід 🚪', callback_data: 'exit' }]] } }   
-                         */ 
             );
+
         };
 
         if (user && status_hook === 'pickup' && !location) {
 
-            
-
             const direction = await updatePickUpLocalOrderById(status_info, text);
             
-       //     const paymentLink = await sessionCreate(1, 'local', status_info, chatId);
             await updateDiaulogueStatus(chatId, 'direction+' + status_info);
 
             await bot.sendMessage(
                 chatId,
                 phrases.taxiOnTheWay,
-              /*      { reply_markup: { inline_keyboard: [
-                        [{ text: 'Замовити', url: paymentLink }],
-                        [{ text: 'Вихід 🚪', callback_data: 'exit' }]] } }   
-                         */ 
             );
+
         };
 
         if (status_hook === 'customerPhone') {
@@ -279,26 +247,7 @@ const localTrip = async () => {
                 const orderPhone = await updatePhoneLocalOrderById(status_info, text);
 
                 const drivers = await findDriversChatId();
-                console.log(drivers);
 
-                
-                
-                //const getTag = localOrder?.pickup_location ? localOrder?.pickup_location.split(" ") : null;
-                //const putTag = localOrder?.direction_location ? localOrder?.direction_location.split(" ") : null;
-
-                /*
-                if (getTag.length === 2) {
-                    await bot.sendLocation(dataBot.driversChannel, getTag[0], getTag[1]);
-                } else {
-                    await bot.sendMessage(dataBot.driversChannel, 'Посадка: ' + localOrder.pickup_location);
-                }
-                
-                if (putTag.length === 2) {
-                    await bot.sendLocation(dataBot.driversChannel, putTag[0], putTag[1]);
-                } else {
-                    await bot.sendMessage(dataBot.driversChannel, 'Оплата: '+localOrder.direction_location);
-                }
-                */
                 const city = await findCityById(localOrder?.city);
 
                 const user = await findUserByChatId(chatId);
@@ -307,8 +256,8 @@ const localTrip = async () => {
                     { 
                         params: 
                         {
-                            origin: localOrder.price + ', Рівне',
-                            destination: localOrder.pickup_location + ', Рівне',
+                            origin: localOrder.price + ', Чернівці',
+                            destination: localOrder.pickup_location + ', Чернівці',
                             key: dataBot.gapiKey,
                             mode: 'driving'
                         }
@@ -323,18 +272,22 @@ const localTrip = async () => {
                 if (data.status === 'OK' && data.routes && data.routes.length > 0) {
 
                     const route = data.routes[0];
+
                     const leg = route.legs[0];
 
-                    const distanceText = leg.distance.text; // Відстань у текстовому форматі (наприклад, "6 км")
-                    const distanceValue = leg.distance.value; // Відстань у метрах (наприклад, 6000)
+                    const distanceText = leg.distance.text; 
+                    
+                    const distanceValue = leg.distance.value; 
 
                     direction = distanceText;
 
                 } else {
+
                     console.error("Error or no routes found:", data.status);
+
                 }
                 
-                await bot.sendMessage(  
+                await bot.sendMessage(
                     dataBot.driversChannel,  
                     `📦 *Замовлення №: ${localOrder.id} \n${city.emoji} ${city.city}*\n` +  
                     `📍 *Адреса куди:* ${localOrder.pickup_location}\n` +  
@@ -345,7 +298,9 @@ const localTrip = async () => {
                 );
                 
                 for (const driverId of drivers) {
+
                     try {
+
                         await driversBot.sendMessage(
                             driverId,
                             `📦 *Замовлення №: ${localOrder.id}*\n` +
@@ -354,6 +309,7 @@ const localTrip = async () => {
                             `📍 *Адреса звідки:* ${localOrder.price}\n` +
                             `🛣️ *Відстань:* ${direction}\n` +
                             `💳 *Оплата:* ${localOrder.direction_location} грн ✅`,
+
                             {
                                 parse_mode: "Markdown",
                                 reply_markup: {
@@ -364,13 +320,19 @@ const localTrip = async () => {
                                                 callback_data: `get@${localOrder.id}`
                                             }
                                         ]
+
                                     ]
+
                                 }
+
                             }
+
                         );
+
                     } catch (error) {
+
                         console.warn(`❌ Не вдалося надіслати повідомлення водієві з chatId ${driverId}:`, error?.message || error);
-                        // Можеш ще додати логіку, щоб відмічати неактивних водіїв у базі
+
                     }
                 }
                 
@@ -383,15 +345,17 @@ const localTrip = async () => {
                         [{ text: 'Залишити коментар 💬', callback_data: `localComment+${localOrder.id}` }],                                
                         ]}
                     }
-                )
-
+                );
     
             } catch (error) {
+
                 console.log(error)
+
             }
         }
 
         if (status_hook === 'localComment') {
+
             await updateDiaulogueStatus(chatId, '');
 
             await updateCommentLocalOrderById(status_info, text)
@@ -402,11 +366,15 @@ const localTrip = async () => {
                 phrases.comentReceived,
                 { reply_markup: { inline_keyboard: [[{ text: 'Вихід 🚪', callback_data: 'exit' }]] } }
             )
+
         }
+
     })
 
 }
 
 export {
+
     localTrip
+
 }
