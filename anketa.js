@@ -21,6 +21,21 @@ export const anketaListiner = async () => {
 
         const user = await findUserByChatId(chatId);
 
+        if(user && !user?.phone ) {
+
+            await bot.sendMessage(
+                chatId, 
+                phrases.askNumber,
+                { reply_markup: keyboards.shareNumber }
+            );
+            return;
+
+        }
+
+        if(user && !user?.defaultPickupLocation) {
+            return;
+        }
+
         await updateDiaulogueStatus(chatId, '');
 
         if (user) {
@@ -30,6 +45,7 @@ export const anketaListiner = async () => {
                 phrases.mainMenu,
                 { reply_markup: keyboards.selectArea }
             ); 
+        
 
         } else {
             const newUser = await createNewUserByChatId(chatId);  
@@ -49,13 +65,24 @@ export const anketaListiner = async () => {
                 await addReferral(inviter.id, newUser.id);
                 bot.sendMessage(chatId, `Вітаємо! Вас запросив ${inviter.name || 'користувач'}`);
 
-                await delay(2000);
+
+                await delay(2000);                
         
                 await bot.sendMessage(
                     chatId, 
                     phrases.askNumber,
                     { reply_markup: keyboards.shareNumber }
                 );
+            } else {
+
+                await delay(2000);                
+        
+                await bot.sendMessage(
+                    chatId, 
+                    phrases.askNumber,
+                    { reply_markup: keyboards.shareNumber }
+                );
+
             }
         }
 
@@ -72,16 +99,25 @@ export const anketaListiner = async () => {
         try {
                        
             if (status === 'defaultPickup') {
-                await updateDiaulogueStatus(chatId, '');
-
-                await updateUserByChatId(chatId, { defaultPickupLocation : text });
-
-                await bot.sendMessage(
-                    chatId, 
-                    phrases.successSaved,
-                    { reply_markup: keyboards.selectArea }
-                );
-
+                // Цей рядок залишаємо тут, щоб статус діалогу завжди скидався після спроби отримати адресу
+                
+            
+                if (text === '/start' || text === null) {
+                    await bot.sendMessage(
+                        chatId,
+                        'Будь ласка, введіть коректну адресу для збереження за замовчуванням.'
+                    );
+                } else {
+                    // Якщо ввід коректний, продовжуємо звичайну логіку
+                    await updateDiaulogueStatus(chatId, '');
+                    await updateUserByChatId(chatId, { defaultPickupLocation: text });
+            
+                    await bot.sendMessage(
+                        chatId,
+                        phrases.successSaved,
+                        { reply_markup: keyboards.selectArea }
+                    );
+                }
             }
 
             if (status === 'nameRequest') {
