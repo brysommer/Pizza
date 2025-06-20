@@ -4,6 +4,8 @@ import { createNewUserByChatId, findUserByChatId, updateDiaulogueStatus, updateU
 import { logger } from "./logger/index.js";
 import { sessionCreate } from "./wfpinit.js";
 import { findDriverByChatId } from "./models/drivers.js";
+import { dataBot } from "./values.js";
+import axios from "axios";
 
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -187,6 +189,55 @@ export const anketaListiner = async () => {
         const fileId = photo.file_id;
 
         bot.sendMessage(chatId, `Photo ID: ${fileId}`);
+
+    });
+
+    bot.on("location", async (msg) =>{
+
+        const chatId = msg.chat.id;
+
+        const user = await findUserByChatId(chatId);
+
+        const status = user?.dialogue_status;
+        
+        const targetCoordinate = {lat: msg.location.latitude, lon: msg.location.longitude};
+
+        const addressResponse = await axios.get('https://maps.googleapis.com/maps/api/geocode/json?',
+            { 
+                params: 
+                    {
+                        latlng: targetCoordinate.lat + ',' + targetCoordinate.lon,
+                        key: dataBot.gapiKey,
+                    }
+                }
+        );
+
+        const data = addressResponse.data;
+
+
+        if (data.status === 'OK' ) {
+
+            const address = data.results[0];
+
+            const addressFormatted = `${address.address_components[1].short_name}, ${address.address_components[0].short_name}`;
+
+            if (status === 'defaultPickup') {
+                await updateDiaulogueStatus(chatId, '');
+                await updateUserByChatId(chatId, { defaultPickupLocation: addressFormatted });
+            
+                await bot.sendMessage(
+                    chatId,
+                    phrases.successSaved,
+                    { reply_markup: keyboards.selectArea }
+                );
+            }
+            
+        } else {
+
+            console.error("Error or no routes found:", data.status);
+
+        }
+        
 
     })
 };

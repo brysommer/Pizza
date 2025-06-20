@@ -121,58 +121,6 @@ const localTrip = async () => {
         }
     });
 
-    bot.on("location", async (msg) => {
-        const chatId = msg.chat.id;
-        const location = msg.location;
-
-        console.log(location);
-        const user = await findUserByChatId(chatId);
-        const status = user?.dialogue_status;
-
-        
-        const status_data = status ? status.split("+") : null;
-        const status_hook = status_data?.[0];
-
-        const status_info = status_data?.[1];
-
-        if (user && status_hook === 'direction') {
-
-            const order = await updateDirectionLocalOrderById(status_info, location.latitude + ' ' + location.longitude);
-
-            const paymentLink = await sessionCreate(1, 'local', status_info, chatId);
-
-            await bot.sendMessage(
-                chatId,
-                phrases.rules,
-                    { reply_markup: { inline_keyboard: [
-                        [{ text: 'Замовити', url: paymentLink }],
-                        [{ text: 'Вихід 🚪', callback_data: 'exit' }]] } }    
-            );
-        } else {
-            await updateDiaulogueStatus(chatId, '');
-
-
-            const order = await createNewLocalOrder(chatId, location.latitude + ' ' + location.longitude, user.favorite_city);
-    
-            await bot.sendMessage(chatId, 
-                phrases.taxiOnTheWay,
-                { reply_markup: { inline_keyboard: [
-                    [{ text: 'Вказати напрямок руху', callback_data: `direction+${order.id}` }],
-                    [{ text: 'Залишити напрямок руху довільним', callback_data: `anydirection+${order.id}` }],
-                    [{ text: 'Вихід 🚪', callback_data: 'exit' }],
-                    [{ text: 'Залишити коментар 💬', callback_data: `localComment+${order.id}` }],
-                    
-                ]} }
-            )
-        }
-
-        
-
-       
-
-      
-    })
-
     bot.on('message', async (message) => {
         const chatId = message.chat.id;
         const text = message.text;
