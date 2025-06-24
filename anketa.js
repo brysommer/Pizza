@@ -6,6 +6,7 @@ import { sessionCreate } from "./wfpinit.js";
 import { findDriverByChatId } from "./models/drivers.js";
 import { dataBot } from "./values.js";
 import axios from "axios";
+import { addReferral } from "./models/referals.js";
 
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -64,7 +65,7 @@ export const anketaListiner = async () => {
                     return bot.sendMessage(chatId, 'Посилання недійсне: користувач не знайдений');
                 }
 
-                await addReferral(inviter.id, newUser.id);
+                await addReferral(referralCode, chatId);
                 bot.sendMessage(chatId, `Вітаємо! Вас запросив ${inviter.name || 'користувач'}`);
 
 

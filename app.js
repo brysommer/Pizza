@@ -22,7 +22,7 @@ export { bot, driversBot };
 const main = async () => {
     const models = {
         list:  [
- //           'cars'
+   //         'referrals',
         ]
     };
     // DB
@@ -50,9 +50,3 @@ getRide();
 //support();
 //getRideByDate();
 
- cron.schedule('0 0 * * *', () => {
-    autoRides();
- }, {
-     scheduled: true,
-     timezone: 'Europe/Kiev' 
- });

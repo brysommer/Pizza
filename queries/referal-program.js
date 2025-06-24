@@ -1,9 +1,11 @@
 import { driversBot } from "../app.js";
 import qrcode from 'qrcode';
+import { getReferralsByInviter } from "../models/referals.js";
 
 export const referalProgram = () => {
     driversBot.setMyCommands([
         {command: '/referal', description: 'Запрошувальне посилання'},
+        {command: '/balance', description: 'Особистий кабінет'},
     ]);
     
     // Приклад відповіді на команду /referal
@@ -36,6 +38,27 @@ export const referalProgram = () => {
             console.error('Помилка при генерації або відправленні QR-коду:', err);
             driversBot.sendMessage(chatId, 'Виникла помилка при генерації QR-коду. Спробуйте пізніше.');
         }
+    }); 
+
+    // Приклад відповіді на команду /referal
+    driversBot.onText(/\/balance/, async (msg) => {
+        const chatId = msg.chat.id;
+        const referalst = await getReferralsByInviter(chatId);
+
+        console.log(referalst)
+
+        if(referalst.length < 1) {
+            driversBot.sendMessage(chatId, `Ви ще не запросили жодного користувача
+            `);
+            return;
+        }
+
+        const referalSrtring = referalst.map(el => el.invited_id).join(`,
+        `);
+
+        driversBot.sendMessage(chatId, `Ви запросили користувачів
+            ${referalSrtring}
+        `)
     }); 
 }
 

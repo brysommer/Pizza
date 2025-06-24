@@ -11,6 +11,7 @@ import { Cities } from '../models/taxi-cities.js';
 import { Orders } from '../models/orders.js';
 import { Driver } from '../models/drivers.js';
 import { LocalOrders } from '../models/localOrders.js';
+import { Referral } from '../models/referals.js';
 
 const DEBUG = false;
 
@@ -30,7 +31,8 @@ const main = async () => {
             Cities.sync(),
             Orders.sync(),
             Driver.sync(),
-            LocalOrders.sync()
+            LocalOrders.sync(),
+            Referral.sync()
         ]);
 
 

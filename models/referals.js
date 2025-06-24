@@ -1,3 +1,7 @@
+import { Model, DataTypes } from "sequelize";
+import { sequelize } from './sequelize.js';
+import { logger } from '../logger/index.js';
+
 class Referral extends Model {}
 Referral.init({
     inviter_id: {  
@@ -54,3 +58,12 @@ const countReferrals = async (inviter_id, onlyActive = false) => {
     if (onlyActive) where.is_active = true;
     return await Referral.count({ where });
 };
+
+export {
+    Referral,
+    addReferral,
+    setReferralActive,
+    getReferralsByInviter,
+    getInviterByUser,
+    countReferrals
+}
