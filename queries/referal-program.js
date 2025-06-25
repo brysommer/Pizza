@@ -53,11 +53,16 @@ export const referalProgram = () => {
             return;
         }
 
-        const referalSrtring = referalst.map(el => el.invited_id).join(`,
-        `);
+        const referalSrtring = referalst.map(el => el.invited_id).join(`
+📓 ├`);
 
-        driversBot.sendMessage(chatId, `Ви запросили користувачів
-            ${referalSrtring}
+        driversBot.sendMessage(chatId, `
+👤 Особистий кабінет:
+
+🆔 ├ ID: ${chatId}  
+📓 ├ ${referalSrtring} 
+💵 └ Усього запрошено: ${referalst.length}
+    
         `)
     }); 
 }

@@ -215,6 +215,8 @@ const localTrip = async () => {
                 
                 const data = distanceResponse.data;
 
+                let distanceValue 
+
                 let direction;
 
                 if (data.status === 'OK' && data.routes && data.routes.length > 0) {
@@ -225,7 +227,7 @@ const localTrip = async () => {
 
                     const distanceText = leg.distance.text; 
                     
-                    const distanceValue = leg.distance.value; 
+                    distanceValue = leg.distance.value/1000; 
 
                     direction = distanceText;
 
@@ -233,7 +235,11 @@ const localTrip = async () => {
 
                     console.error("Error or no routes found:", data.status);
 
-                }
+                };
+
+                const deliveryPrice = (100 + (distanceValue * 30)).toFixed(0);
+                
+                const total = parseFloat(localOrder.direction_location) + parseFloat(deliveryPrice);
                 
                 await bot.sendMessage(
                     dataBot.driversChannel,  
@@ -241,7 +247,9 @@ const localTrip = async () => {
                     `📍 *Адреса куди:* ${localOrder.pickup_location}\n` +  
                     `📍 *Адреса звідки:* ${localOrder.price}\n` +
                     `🛣️ *Відстань:* ${direction}\n` +
-                    `💳 *Оплата:* ${localOrder.direction_location} грн ✅`,  
+                    `💳 *Доставка:* ${deliveryPrice} грн \n` +  
+                    `🥡 *Замовлення:* ${localOrder.direction_location} грн \n` +  
+                    ` *₴     Загальна сума:* ${total} грн ✅`,
                     { parse_mode: "Markdown" }  
                 );
                 
@@ -252,11 +260,13 @@ const localTrip = async () => {
                         await driversBot.sendMessage(
                             driverId,
                             `📦 *Замовлення №: ${localOrder.id}*\n` +
-                            `${city.emoji} ${city.city}\n` +
+                            `${city.emoji}  ${city.city}\n` +
                             `📍 *Адреса куди:* ${localOrder.pickup_location}\n` +  
                             `📍 *Адреса звідки:* ${localOrder.price}\n` +
                             `🛣️ *Відстань:* ${direction}\n` +
-                            `💳 *Оплата:* ${localOrder.direction_location} грн ✅`,
+                            `💳 *Доставка:* ${deliveryPrice} грн \n` +  
+                            `🥡 *Замовлення:* ${localOrder.direction_location} грн \n` +  
+                            ` *₴     Загальна сума:* ${total} грн ✅`,
 
                             {
                                 parse_mode: "Markdown",
