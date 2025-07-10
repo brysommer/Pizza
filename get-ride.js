@@ -17,6 +17,12 @@ const getRide = async () => {
             await updateDriverLocalOrderById(textCommand[1], driver.id);
 
             await bot.sendMessage(localOrder.client, `Замовлення ${localOrder.id} прийнято ` );
+            await bot.sendMessage(localOrder.client,
+                `💳 *Доставка:* ${localOrder.deliveryPrice} грн \n` +  
+                `🥡 *Замовлення:* ${localOrder.direction_location} грн \n` +  
+                ` *₴     Загальна сума:* ${localOrder.deliveryPrice + localOrder.direction_location} грн ✅`,
+                { parse_mode: "Markdown" }  
+             );
             await bot.sendMessage(localOrder.client, `Очікуйте авто ${driver.registration_number}\nНомер кур'єра: ${driver.phone}`);
 
             if (textCommand[2]) {

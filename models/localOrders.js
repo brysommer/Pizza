@@ -36,7 +36,12 @@ LocalOrders.init({
     price: {
         type: DataTypes.STRING,
         allowNull: true
+    },
+    deliveryPrice: {
+        type: DataTypes.INTEGER,
+        allowNull: true
     }
+
 
 }, {
     freezeTableName: false,
@@ -90,6 +95,11 @@ const updatePhoneLocalOrderById = async (id, phone) => {
     return res[0] ? id : undefined;
 };
 
+const updateDeliveryPriceLocalOrderById = async (id, deliveryPrice) => {
+    const res = await LocalOrders.update({ deliveryPrice }, { where: { id } });
+    return res[0] ? id : undefined;
+};
+
 export {
     LocalOrders,
     createNewLocalOrder,
@@ -98,5 +108,6 @@ export {
     updateCommentLocalOrderById,
     updateDirectionLocalOrderById,
     updatePhoneLocalOrderById,
-    updatePickUpLocalOrderById
+    updatePickUpLocalOrderById,
+    updateDeliveryPriceLocalOrderById
 };

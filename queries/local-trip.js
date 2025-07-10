@@ -2,7 +2,7 @@ import axios from 'axios';
 import { bot, driversBot } from '../app.js';
 import { keyboards, phrases } from '../language_ua.js';
 import { findDriversChatId } from '../models/drivers.js';
-import { createNewLocalOrder, findLocalOrderById, updateCommentLocalOrderById, updateDirectionLocalOrderById, updatePhoneLocalOrderById, updatePickUpLocalOrderById } from '../models/localOrders.js';
+import { createNewLocalOrder, findLocalOrderById, updateCommentLocalOrderById, updateDeliveryPriceLocalOrderById, updateDirectionLocalOrderById, updatePhoneLocalOrderById, updatePickUpLocalOrderById } from '../models/localOrders.js';
 import { findAllCities, findCityById } from '../models/taxi-cities.js';
 import { findUserByChatId, updateDiaulogueStatus, updateUserByChatId } from '../models/user.js';
 import { generateLocaLLocationsMenu } from '../plugins/generate-menu.js';
@@ -238,6 +238,8 @@ const localTrip = async () => {
                 };
 
                 const deliveryPrice = (100 + (distanceValue * 30)).toFixed(0);
+
+                const updateDelivery = await updateDeliveryPriceLocalOrderById(localOrder.id, deliveryPrice);
                 
                 const total = parseFloat(localOrder.direction_location) + parseFloat(deliveryPrice);
                 
