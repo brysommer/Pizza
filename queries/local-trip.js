@@ -318,11 +318,22 @@ const localTrip = async () => {
 
             await updateDiaulogueStatus(chatId, '');
 
-            await updateCommentLocalOrderById(status_info, text)
+            await updateCommentLocalOrderById(status_info, text);
 
-            await bot.sendMessage(dataBot.driversChannel, `Замовлення №: ${status_info+ ' 💬 Коментар: ' +text}`);
+            const comment = `Замовлення №: ${status_info+ ' 💬 Коментар: ' +text}`
 
-            await bot.sendMessage(driversBot, `Замовлення №: ${status_info+ ' 💬 Коментар: ' +text}`);
+            await bot.sendMessage(dataBot.driversChannel, comment);
+
+            const drivers = await findDriversChatId();
+
+            for (const driverId of drivers) {
+                try {
+                    await driversBot.sendMessage(driverId, comment);
+                } catch (error) {
+                    console.warn(`❌ Не вдалося надіслати повідомлення водієві з chatId ${driverId}:`, error?.message || error);
+                    // Можеш ще додати логіку, щоб відмічати неактивних водіїв у базі
+                }
+            }
 
             await bot.sendMessage(chatId, 
                 phrases.comentReceived,
