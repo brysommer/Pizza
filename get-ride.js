@@ -16,11 +16,16 @@ const getRide = async () => {
             const driver = await findDriverByChatId(chatId);
             await updateDriverLocalOrderById(textCommand[1], driver.id);
 
+            const total = parseFloat(localOrder.direction_location) + parseFloat(localOrder.deliveryPrice);
+
             await bot.sendMessage(localOrder.client, `Замовлення ${localOrder.id} прийнято ` );
             await bot.sendMessage(localOrder.client,
+                `📦 *Замовлення №: ${localOrder.id} \n${city.emoji} ${city.city}*\n` +  
+                `📍 *Адреса куди:* ${localOrder.pickup_location}\n` +  
+                `📍 *Адреса звідки:* ${localOrder.price}\n` +
                 `💳 *Доставка:* ${localOrder.deliveryPrice} грн \n` +  
                 `🥡 *Замовлення:* ${localOrder.direction_location} грн \n` +  
-                ` *₴     Загальна сума:* ${localOrder.deliveryPrice + localOrder.direction_location} грн ✅`,
+                ` *₴     Загальна сума:* ${total} грн ✅`,
                 { parse_mode: "Markdown" }  
              );
             await bot.sendMessage(localOrder.client, `Очікуйте авто ${driver.registration_number}\nНомер кур'єра: ${driver.phone}`);
@@ -47,7 +52,9 @@ const getRide = async () => {
                 `*Ви успішно забрали замовлення ${textCommand[1]}*\n` +
                 `📍 *Адреса куди:* ${localOrder.pickup_location}\n` +  
                 `📍 *Адреса звідки:* ${localOrder.price}\n` +
-                `💳 *Оплата:* ${localOrder?.direction_location} грн ✅\n` +
+                `💳 *Доставка:* ${localOrder.deliveryPrice} грн \n` +  
+                `🥡 *Замовлення:* ${localOrder.direction_location} грн \n` +  
+                ` *₴     Загальна сума:* ${total} грн ✅`,
                 `📞 ${localOrder?.phone}`,
                 { parse_mode: "Markdown" }
             );
