@@ -5,6 +5,7 @@ import { logger } from "./logger/index.js";
 import { findLocalOrderById, updateDriverLocalOrderById } from "./models/localOrders.js";
 import { findDriverByChatId, findDriversChatId } from "./models/drivers.js";
 import { dataBot } from "./values.js";
+import { findCityById } from "./models/taxi-cities.js";
 
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -17,6 +18,8 @@ const getRide = async () => {
             await updateDriverLocalOrderById(textCommand[1], driver.id);
 
             const total = parseFloat(localOrder.direction_location) + parseFloat(localOrder.deliveryPrice);
+            
+            const city = await findCityById(localOrder?.city);
 
             await bot.sendMessage(localOrder.client, `Замовлення ${localOrder.id} прийнято ` );
             await bot.sendMessage(localOrder.client,
@@ -54,7 +57,7 @@ const getRide = async () => {
                 `📍 *Адреса звідки:* ${localOrder.price}\n` +
                 `💳 *Доставка:* ${localOrder.deliveryPrice} грн \n` +  
                 `🥡 *Замовлення:* ${localOrder.direction_location} грн \n` +  
-                ` *₴     Загальна сума:* ${total} грн ✅`,
+                ` *₴     Загальна сума:* ${total} грн ✅  \n` +
                 `📞 ${localOrder?.phone}`,
                 { parse_mode: "Markdown" }
             );
