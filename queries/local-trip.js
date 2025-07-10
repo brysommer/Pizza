@@ -322,6 +322,8 @@ const localTrip = async () => {
 
             await bot.sendMessage(dataBot.driversChannel, `Замовлення №: ${status_info+ ' 💬 Коментар: ' +text}`);
 
+            await bot.sendMessage(driversBot, `Замовлення №: ${status_info+ ' 💬 Коментар: ' +text}`);
+
             await bot.sendMessage(chatId, 
                 phrases.comentReceived,
                 { reply_markup: { inline_keyboard: [[{ text: 'Вихід 🚪', callback_data: 'exit' }]] } }
