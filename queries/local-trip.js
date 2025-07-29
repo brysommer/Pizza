@@ -2,12 +2,13 @@ import axios from 'axios';
 import { bot, driversBot } from '../app.js';
 import { keyboards, phrases } from '../language_ua.js';
 import { findDriversChatId } from '../models/drivers.js';
-import { createNewLocalOrder, findLocalOrderById, updateCommentLocalOrderById, updateDeliveryPriceLocalOrderById, updateDirectionLocalOrderById, updatePhoneLocalOrderById, updatePickUpLocalOrderById } from '../models/localOrders.js';
+import { createNewLocalOrder, findLocalOrderById, updateCommentLocalOrderById, updateDeliveryPriceLocalOrderById, updateDirectionLocalOrderById, updateDistanceLocalOrderById, updatePhoneLocalOrderById, updatePickUpLocalOrderById } from '../models/localOrders.js';
 import { findAllCities, findCityById } from '../models/taxi-cities.js';
 import { findUserByChatId, updateDiaulogueStatus, updateUserByChatId } from '../models/user.js';
 import { generateLocaLLocationsMenu } from '../plugins/generate-menu.js';
 import { dataBot } from '../values.js';
 import { sessionCreate } from '../wfpinit.js';
+import { calculatePrice } from '../plugins/calculate-price.js';
 
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -50,6 +51,81 @@ const localTrip = async () => {
                     const callback_next = callback_data[2];
 
                     switch (callback_hook) {
+                        case 'approveOrder':
+                            const localOrder = await findLocalOrderById(callback_info);
+
+                            const drivers = await findDriversChatId();
+
+                            const typeOfGoods = await findCityById(localOrder?.city);
+
+                            const user = await findUserByChatId(chatId);
+
+                            await bot.sendMessage(
+                                dataBot.driversChannel,  
+                                `📦 *Замовлення №: ${localOrder.id} \n${typeOfGoods.emoji} ${typeOfGoods.city}*\n` +  
+                                `📍 *Адреса куди:* ${localOrder.pickup_location}\n` +  
+                                `📍 *Адреса звідки:* ${localOrder.price}\n` +
+                                `🛣️ *Відстань:* ${localOrder.distance}\n` +
+                                `💳 *Доставка:* ${localOrder.deliveryPrice} грн \n` +  
+                                `🥡 *Замовлення:* ${localOrder.direction_location} грн \n` +  
+                                ` *₴  Загальна сума:* ${localOrder.deliveryPrice + localOrder.direction_location} грн ✅`,
+                                { parse_mode: "Markdown" }  
+                            );
+                            
+                            for (const driverId of drivers) {
+            
+                                try {                     
+            
+            
+            
+                                    await driversBot.sendMessage(
+                                        driverId,
+                                        `📦 *Замовлення №: ${localOrder.id}*\n` +
+                                        `${typeOfGoods.emoji}  ${typeOfGoods.city}\n` +
+                                        `📍 *Адреса куди:* ${localOrder.pickup_location}\n` +  
+                                        `📍 *Адреса звідки:* ${localOrder.price}\n` +
+                                        `🛣️ *Відстань:* ${localOrder.distance}\n` +
+                                        `💳 *Доставка:* ${localOrder.deliveryPrice} грн \n` +  
+                                        `🥡 *Замовлення:* ${localOrder.direction_location} грн \n` +  
+                                        `*₴     Загальна сума:* ${localOrder.deliveryPrice + localOrder.direction_location} грн ✅ \n`, 
+                                        {
+                                            parse_mode: "Markdown",
+                                            reply_markup: {
+                                                inline_keyboard: [
+                                                    [
+                                                        {
+                                                            text: "🚗 Взяти замовлення",
+                                                            callback_data: `get@${localOrder.id}`
+                                                        }
+                                                    ]
+            
+                                                ]
+            
+                                            }
+            
+                                        }
+            
+                                    );
+            
+                                } catch (error) {
+            
+                                    console.warn(`❌ Не вдалося надіслати повідомлення водієві з chatId ${driverId}:`, error?.message || error);
+            
+                                }
+                            }
+
+                            await bot.sendMessage(chatId, 
+                                phrases.successPay,
+                                
+                                { reply_markup: { inline_keyboard: [
+                                    [{ text: 'Вихід 🚪', callback_data: 'exit' }],
+                                    [{ text: 'Залишити коментар 💬', callback_data: `localComment+${localOrder.id}` }],                                
+                                    ]}
+                                }
+                            );
+
+                        break;
+
                         case 'city':
                             const city = await updateUserByChatId(chatId, { favorite_city: callback_info });
 
@@ -190,6 +266,7 @@ const localTrip = async () => {
         if (status_hook === 'customerPhone') {
 
             try {
+
                 const localOrder = await findLocalOrderById(status_info);
 
                 const orderPhone = await updatePhoneLocalOrderById(status_info, text);
@@ -230,6 +307,8 @@ const localTrip = async () => {
                     distanceValue = leg.distance.value/1000; 
 
                     direction = distanceText;
+                    
+                    
 
                 } else {
 
@@ -237,82 +316,54 @@ const localTrip = async () => {
 
                 };
 
-                const deliveryPrice = (100 + (distanceValue * 30)).toFixed(0);
+                const deliveryPrice = calculatePrice(distanceValue);
 
                 const updateDelivery = await updateDeliveryPriceLocalOrderById(localOrder.id, deliveryPrice);
                 
                 const total = parseFloat(localOrder.direction_location) + parseFloat(deliveryPrice);
+
+                const departmentPhone = await findUserByChatId(chatId);
+
+                const distance = await updateDistanceLocalOrderById(localOrder.id, direction)
+
+                await bot.sendMessage(chatId, 'Це замовлення побачить ваш курьєр');
                 
                 await bot.sendMessage(
-                    dataBot.driversChannel,  
+                    chatId,
                     `📦 *Замовлення №: ${localOrder.id} \n${city.emoji} ${city.city}*\n` +  
                     `📍 *Адреса куди:* ${localOrder.pickup_location}\n` +  
                     `📍 *Адреса звідки:* ${localOrder.price}\n` +
                     `🛣️ *Відстань:* ${direction}\n` +
                     `💳 *Доставка:* ${deliveryPrice} грн \n` +  
                     `🥡 *Замовлення:* ${localOrder.direction_location} грн \n` +  
-                    ` *₴     Загальна сума:* ${total} грн ✅`,
-                    { parse_mode: "Markdown" }  
-                );
-                
-                for (const driverId of drivers) {
-
-                    try {
-
-                        await driversBot.sendMessage(
-                            driverId,
-                            `📦 *Замовлення №: ${localOrder.id}*\n` +
-                            `${city.emoji}  ${city.city}\n` +
-                            `📍 *Адреса куди:* ${localOrder.pickup_location}\n` +  
-                            `📍 *Адреса звідки:* ${localOrder.price}\n` +
-                            `🛣️ *Відстань:* ${direction}\n` +
-                            `💳 *Доставка:* ${deliveryPrice} грн \n` +  
-                            `🥡 *Замовлення:* ${localOrder.direction_location} грн \n` +  
-                            ` *₴     Загальна сума:* ${total} грн ✅`,
-
+                    `₴ *Загальна сума:* ${total} грн ✅\n` + 
+                    `Номер клієнта 📞 ${text}\n` + 
+                    `Номер відправника 📞 ${departmentPhone?.phone || 'не вказано'}`,
+                    {
+                      parse_mode: "Markdown",
+                      reply_markup: {
+                        inline_keyboard: [
+                          [
                             {
-                                parse_mode: "Markdown",
-                                reply_markup: {
-                                    inline_keyboard: [
-                                        [
-                                            {
-                                                text: "🚗 Взяти замовлення",
-                                                callback_data: `get@${localOrder.id}`
-                                            }
-                                        ]
-
-                                    ]
-
-                                }
-
-                            }
-
-                        );
-
-                    } catch (error) {
-
-                        console.warn(`❌ Не вдалося надіслати повідомлення водієві з chatId ${driverId}:`, error?.message || error);
-
+                              text: "✅ Підтвердити",
+                              callback_data: `approveOrder+${localOrder.id}`,
+                            },
+                            {
+                              text: "❌ Відмінити",
+                              callback_data: "exit",
+                            },
+                          ],
+                        ],
+                      },
                     }
-                }
-                
-
-                await bot.sendMessage(chatId, 
-                    phrases.successPay,
-                    
-                    { reply_markup: { inline_keyboard: [
-                        [{ text: 'Вихід 🚪', callback_data: 'exit' }],
-                        [{ text: 'Залишити коментар 💬', callback_data: `localComment+${localOrder.id}` }],                                
-                        ]}
-                    }
-                );
-    
+                  );
             } catch (error) {
 
                 console.log(error)
 
             }
         }
+
 
         if (status_hook === 'localComment') {
 

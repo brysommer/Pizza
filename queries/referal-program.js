@@ -1,6 +1,7 @@
 import { driversBot } from "../app.js";
 import qrcode from 'qrcode';
 import { getReferralsByInviter } from "../models/referals.js";
+import { findUserByChatId } from "../models/user.js";
 
 export const referalProgram = () => {
     driversBot.setMyCommands([
@@ -53,14 +54,21 @@ export const referalProgram = () => {
             return;
         }
 
-        const referalSrtring = referalst.map(el => el.invited_id).join(`
-📓 ├`);
+        const referalString = (await Promise.all(
+            referalst.map(async (el) => {
+              const user = await findUserByChatId(el.invited_id);
+              const nameOrId = user?.businessName || el.invited_id;
+              const status = el.is_active ? '✅' : '🕒';
+              return `${nameOrId} ${status}`;
+            })
+          )).join('\n📓 ├ ');
+          
 
         driversBot.sendMessage(chatId, `
 👤 Особистий кабінет:
 
 🆔 ├ ID: ${chatId}  
-📓 ├ ${referalSrtring} 
+📓 ├ ${referalString} 
 💵 └ Усього запрошено: ${referalst.length}
     
         `)

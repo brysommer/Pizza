@@ -49,7 +49,9 @@ const getRide = async () => {
                     // Можеш ще додати логіку, щоб відмічати неактивних водіїв у базі
                 }
             }
-
+            
+            const departmentPhone = await findUserByChatId(parseFloat(localOrder.client));
+            
             await driversBot.sendMessage(
                 chatId,
                 `*Ви успішно забрали замовлення ${textCommand[1]}*\n` +
@@ -58,7 +60,8 @@ const getRide = async () => {
                 `💳 *Доставка:* ${localOrder.deliveryPrice} грн \n` +  
                 `🥡 *Замовлення:* ${localOrder.direction_location} грн \n` +  
                 ` *₴     Загальна сума:* ${total} грн ✅  \n` +
-                `📞 ${localOrder?.phone}`,
+                `Номер клієнта 📞 ${localOrder?.phone} \n` + 
+                `Номер відправника 📞 ${departmentPhone?.phone || 'не вказано'}`,
                 { parse_mode: "Markdown" }
             );
 

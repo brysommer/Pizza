@@ -40,6 +40,10 @@ LocalOrders.init({
     deliveryPrice: {
         type: DataTypes.INTEGER,
         allowNull: true
+    },
+    distance: {
+        type: DataTypes.STRING,
+        allowNull: true
     }
 
 
@@ -95,6 +99,11 @@ const updatePhoneLocalOrderById = async (id, phone) => {
     return res[0] ? id : undefined;
 };
 
+const updateDistanceLocalOrderById = async (id, distance) => {
+    const res = await LocalOrders.update({ distance }, { where: { id } });
+    return res[0] ? id : undefined;
+};
+
 const updateDeliveryPriceLocalOrderById = async (id, deliveryPrice) => {
     const res = await LocalOrders.update({ deliveryPrice }, { where: { id } });
     return res[0] ? id : undefined;
@@ -109,5 +118,6 @@ export {
     updateDirectionLocalOrderById,
     updatePhoneLocalOrderById,
     updatePickUpLocalOrderById,
-    updateDeliveryPriceLocalOrderById
+    updateDeliveryPriceLocalOrderById,
+    updateDistanceLocalOrderById
 };
