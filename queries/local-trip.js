@@ -87,7 +87,7 @@ const localTrip = async () => {
                                         `🛣️ *Відстань:* ${localOrder.distance}\n` +
                                         `💳 *Доставка:* ${localOrder.deliveryPrice} грн \n` +  
                                         `🥡 *Замовлення:* ${localOrder.direction_location} грн \n` +  
-                                        `*₴     Загальна сума:* ${localOrder.deliveryPrice + localOrder.direction_location} грн ✅ \n`, 
+                                        `*₴     Загальна сума:* ${parseFloat(localOrder.deliveryPrice) + parseFloat(localOrder.direction_location)} грн ✅ \n`, 
                                         {
                                             parse_mode: "Markdown",
                                             reply_markup: {
