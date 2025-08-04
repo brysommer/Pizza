@@ -1,3 +1,4 @@
 node_modules
 values.js
 models/sequelize.js
+tickets.js

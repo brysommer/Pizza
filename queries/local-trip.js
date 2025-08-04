@@ -1,14 +1,14 @@
-import axios from 'axios';
-import { bot, driversBot } from '../app.js';
-import { keyboards, phrases } from '../language_ua.js';
-import { findDriversChatId } from '../models/drivers.js';
-import { createNewLocalOrder, findLocalOrderById, updateCommentLocalOrderById, updateDeliveryPriceLocalOrderById, updateDirectionLocalOrderById, updateDistanceLocalOrderById, updatePhoneLocalOrderById, updatePickUpLocalOrderById } from '../models/localOrders.js';
-import { findAllCities, findCityById } from '../models/taxi-cities.js';
-import { findUserByChatId, updateDiaulogueStatus, updateUserByChatId } from '../models/user.js';
-import { generateLocaLLocationsMenu } from '../plugins/generate-menu.js';
-import { dataBot } from '../values.js';
-import { sessionCreate } from '../wfpinit.js';
-import { calculatePrice } from '../plugins/calculate-price.js';
+import axios from 'axios'
+import { bot, driversBot } from '../app.js'
+import { keyboards, phrases } from '../language_ua.js'
+import { findDriversChatId } from '../models/drivers.js'
+import { createNewLocalOrder, findLocalOrderById, updateCommentLocalOrderById, updateDeliveryPriceLocalOrderById, updateDirectionLocalOrderById, updateDistanceLocalOrderById, updatePhoneLocalOrderById, updatePickUpLocalOrderById } from '../models/localOrders.js'
+import { findAllCities, findCityById } from '../models/taxi-cities.js'
+import { findUserByChatId, updateDiaulogueStatus, updateUserByChatId } from '../models/user.js'
+import { calculatePrice } from '../plugins/calculate-price.js'
+import { generateLocaLLocationsMenu } from '../plugins/generate-menu.js'
+import { dataBot } from '../values.js'
+import { sessionCreate } from '../wfpinit.js'
 
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -316,7 +316,7 @@ const localTrip = async () => {
 
                 };
 
-                const deliveryPrice = calculatePrice(distanceValue);
+                const deliveryPrice = await calculatePrice(distanceValue);
 
                 const updateDelivery = await updateDeliveryPriceLocalOrderById(localOrder.id, deliveryPrice);
                 
@@ -400,5 +400,4 @@ const localTrip = async () => {
 export {
 
     localTrip
-
 }
